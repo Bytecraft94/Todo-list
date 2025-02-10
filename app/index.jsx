@@ -1,23 +1,54 @@
 import { View, Text, TextInput, Pressable, StyleSheet, FlatList, } from 'react-native'
-import React, { useContext, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { ThemeContext } from '@/context/ThemeContext'
 import { data } from '@/data/todos'
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Inter_500Medium, useFonts } from "@expo-google-fonts/inter"
-import Animated, {LinearTransition} from 'react-native-reanimated'
+import Animated, { LinearTransition } from 'react-native-reanimated'
+import AsyncStorage  from "@react-native-async-storage/async-storage"
 import { Octicons } from '@expo/vector-icons';
 export default function Index() {
-  const [todos, setTodos] = useState(data.sort((a, b) => b.id - a.id))
+  const [todos, setTodos] = useState([])
   const [text, setText] = useState('');
-  const { colorScheme, setColorScheme, theme}= useContext(ThemeContext)
+  const { colorScheme, setColorScheme, theme } = useContext(ThemeContext)
   const [loaded, error] = useFonts({
     Inter_500Medium,
   })
+
+  useEffect(() => {
+    const fetchData=async()=>{
+      try {
+        const jsonValue = await AsyncStorage.getItem('TodoApp')
+        const storageTodos = jsonValue != null ? JSON.parse(jsonValue) : null
+        if(storageTodos && storageTodos.length){
+          setTodos(storageTodos.sort((a,b)=> b.id -a.id))
+        }else{
+          setTodos(data.sort((a, b) => b.id - a.id))
+        }
+      } catch (error) {
+        console.error(error)
+      }
+    }
+    fetchData()
+ 
+  }, [data])
+  useEffect(()=>{
+const storeData=async()=>{
+  try {
+    const jsonValue=JSON.stringify(todos)
+    await AsyncStorage.setItem('TodoApp', jsonValue)
+  } catch (error) {
+    console.error(error)
+
+  }
+}
+storeData()
+  },[todos])
   if (!loaded && !error) {
     return null
   }
-  const styles=createStyles(theme,colorScheme)
+  const styles = createStyles(theme, colorScheme)
   const addTodo = () => {
     if (text.trim()) {
       const newId = todos.length > 0 ? todos[0].id + 1 : 1;
@@ -61,21 +92,21 @@ export default function Index() {
             Add
           </Text>
         </Pressable>
-        <Pressable 
-        style={{ marginLeft:10}} 
-        onPress={()=> setColorScheme(colorScheme === 'light' ? 'dark' : 'light')}>
-         
+        <Pressable
+          style={{ marginLeft: 10 }}
+          onPress={() => setColorScheme(colorScheme === 'light' ? 'dark' : 'light')}>
+
           {
             colorScheme === 'dark' ?
-            < Octicons name='moon' size={36}
-            color={theme.text} selectable={undefined} style={{ with: 36}} />
-            :     < Octicons name='sun' size={36}
-            color={theme.text} selectable={undefined} style={{ with: 36}} />
+              < Octicons name='moon' size={36}
+                color={theme.text} selectable={undefined} style={{ with: 36 }} />
+              : < Octicons name='sun' size={36}
+                color={theme.text} selectable={undefined} style={{ with: 36 }} />
           }
         </Pressable>
       </View>
       <Animated.FlatList
-data={todos}
+        data={todos}
         renderItem={renderItem}
         keyExtractor={todo => todo.id}
         contentContainerStyle={{ flexGrow: 1 }}
@@ -88,68 +119,68 @@ data={todos}
   )
 }
 
-function createStyles(theme,colorScheme){
+function createStyles(theme, colorScheme) {
   return StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.background,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-    padding: 10,
-    width: '100%',
-    maxWidth: 1024,
-    marginHorizontal: 'auto',
-    pointerEvents: 'auto',
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    inputContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 10,
+      padding: 10,
+      width: '100%',
+      maxWidth: 1024,
+      marginHorizontal: 'auto',
+      pointerEvents: 'auto',
 
-  },
-  input: {
-    flex: 1,
-    borderColor: 'gray',
-    borderWidth: 1,
-    borderRadius: 5,
-    padding: 10,
-    marginRight: 10,
-    fontSize: 18,
-    fontFamily: 'Inter_500Medium',
-    minWidth: 0,
-    color: theme.text,
-  },
-  addButton: {
-    backgroundColor: theme.button,
-    borderRadius: 5,
-    padding: 10,
-  },
-  addButtonText: {
-    fontSize: 18,
-    color: colorScheme === 'dark' ? 'black' : 'white',
-  },
-  todoItem: {
-    flexDirection: 'row',
-    alignItems: "center",
-    justifyContent: 'space-between',
-    gap: 4,
-    padding: 10,
-    borderBottomColor: 'gray',
-    borderBottomWidth: 1,
-    width: "100%",
-    maxWidth: 1024,
-    marginHorizontal: 'auto',
-    pointerEvents: 'auto'
-  },
-  todoText: {
-    flex: 1,
-    fontSize: 18,
-    fontFamily: 'Inter_500Medium',
+    },
+    input: {
+      flex: 1,
+      borderColor: 'gray',
+      borderWidth: 1,
+      borderRadius: 5,
+      padding: 10,
+      marginRight: 10,
+      fontSize: 18,
+      fontFamily: 'Inter_500Medium',
+      minWidth: 0,
+      color: theme.text,
+    },
+    addButton: {
+      backgroundColor: theme.button,
+      borderRadius: 5,
+      padding: 10,
+    },
+    addButtonText: {
+      fontSize: 18,
+      color: colorScheme === 'dark' ? 'black' : 'white',
+    },
+    todoItem: {
+      flexDirection: 'row',
+      alignItems: "center",
+      justifyContent: 'space-between',
+      gap: 4,
+      padding: 10,
+      borderBottomColor: 'gray',
+      borderBottomWidth: 1,
+      width: "100%",
+      maxWidth: 1024,
+      marginHorizontal: 'auto',
+      pointerEvents: 'auto'
+    },
+    todoText: {
+      flex: 1,
+      fontSize: 18,
+      fontFamily: 'Inter_500Medium',
 
-    color: theme.text,
+      color: theme.text,
 
-  },
-  completedText: {
-    textDecorationLine: "line-through",
-    color: 'gray',
-  }
-})
+    },
+    completedText: {
+      textDecorationLine: "line-through",
+      color: 'gray',
+    }
+  })
 }
