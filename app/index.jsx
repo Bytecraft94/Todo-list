@@ -8,7 +8,11 @@ import { Inter_500Medium, useFonts } from "@expo-google-fonts/inter"
 import Animated, { LinearTransition } from 'react-native-reanimated'
 import AsyncStorage  from "@react-native-async-storage/async-storage"
 import { Octicons } from '@expo/vector-icons';
+import { StatusBar } from 'expo-status-bar';
+import { useRouter } from 'expo-router';
 export default function Index() {
+  const router=useRouter();
+
   const [todos, setTodos] = useState([])
   const [text, setText] = useState('');
   const { colorScheme, setColorScheme, theme } = useContext(ThemeContext)
@@ -63,12 +67,23 @@ storeData()
   const removeTodo = (id) => {
     setTodos(todos.filter(todo => todo.id !== id))
   }
+
+const handlePress=(id)=>{
+  console.log("00", id)
+  router.push(`/todos/${id}`)
+}
+
   const renderItem = ({ item }) => (
     <View style={styles.todoItem}>
+      <Pressable
+      onPress={()=> handlePress(item.id)}
+            onLongPress={() => toggleTodo(item.id)}
+
+      >
       <Text style={[styles.todoText, item.completed && styles.completedText]}
-        onPress={() => toggleTodo(item.id)}
       >
         {item.title}</Text>
+        </Pressable>
       <Pressable onPress={() => {
         removeTodo(item.id)
       }}>
@@ -82,6 +97,7 @@ storeData()
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
+          maxLength={30}
           placeholder='Add a new todo'
           placeholderTextColor='gray'
           value={text}
@@ -92,18 +108,16 @@ storeData()
             Add
           </Text>
         </Pressable>
-        <Pressable
-          style={{ marginLeft: 10 }}
-          onPress={() => setColorScheme(colorScheme === 'light' ? 'dark' : 'light')}>
-
-          {
-            colorScheme === 'dark' ?
-              < Octicons name='moon' size={36}
-                color={theme.text} selectable={undefined} style={{ with: 36 }} />
-              : < Octicons name='sun' size={36}
-                color={theme.text} selectable={undefined} style={{ with: 36 }} />
-          }
-        </Pressable>
+       
+         <Pressable
+                  style={{ marginLeft: 10 }}
+                  onPress={() => setColorScheme(colorScheme === 'light' ? 'dark' : 'light')}>
+        
+               
+                      < Octicons name={colorScheme === 'dark' ? 'moon' : 'sun'} size={36}
+                        color={theme.text} selectable={undefined} style={{ with: 36 }} />
+                     
+                </Pressable>
       </View>
       <Animated.FlatList
         data={todos}
@@ -114,7 +128,7 @@ storeData()
         keyboardDismissMode='on-drag'
 
       />
-
+<StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
     </SafeAreaView>
   )
 }
